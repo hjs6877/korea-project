@@ -11,14 +11,14 @@ import java.io.Serializable;
  * Created by ideapad on 2015-10-11.
  */
 class LineItem implements WritableComparable<LineItem> {
-    private String orderkey;
-    private String linenumber;
+    private long orderkey;
+    private long linenumber;
     private double quantity;
     private double discount;
     private double tax;
 
 
-    public void set(String orderkey, String linenumber, double quantity, double discount, double tax){
+    public void set(long orderkey, long linenumber, double quantity, double discount, double tax){
         this.orderkey   = orderkey;
         this.linenumber = linenumber;
         this.quantity   = quantity;
@@ -26,38 +26,38 @@ class LineItem implements WritableComparable<LineItem> {
         this.tax        = tax;
     }
     public void write(DataOutput output) throws IOException {
-        output.writeUTF(orderkey);
-        output.writeUTF(linenumber);
+        output.writeLong(orderkey);
+        output.writeLong(linenumber);
         output.writeDouble(quantity);
         output.writeDouble(discount);
         output.writeDouble(tax);
     }
 
     public void readFields(DataInput input) throws IOException {
-        orderkey    = input.readUTF();
-        linenumber  = input.readUTF();
+        orderkey    = input.readLong();
+        linenumber  = input.readLong();
         quantity    = input.readDouble();
         discount    = input.readDouble();
         tax         = input.readDouble();
     }
 
-    public int compareTo(LineItem o) {
-        return 0;
+    public int compareTo(LineItem item) {
+       return 0;
     }
 
-    public String getOrderkey() {
+    public long getOrderkey() {
         return orderkey;
     }
 
-    public void setOrderkey(String orderkey) {
+    public void setOrderkey(long orderkey) {
         this.orderkey = orderkey;
     }
 
-    public String getLinenumber() {
+    public long getLinenumber() {
         return linenumber;
     }
 
-    public void setLinenumber(String linenumber) {
+    public void setLinenumber(long linenumber) {
         this.linenumber = linenumber;
     }
 

@@ -1,9 +1,6 @@
 package kr.ac.korea;
 
-import org.apache.hadoop.io.DoubleWritable;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import java.io.IOException;
@@ -12,16 +9,15 @@ import java.util.*;
 /**
  * Created by ideapad on 2015-10-11.
  */
-public class SqlReducer1 extends Reducer<Text, LineItem, Text, Text> {
+public class SqlGroupByReducer extends Reducer<LongWritable, LineItem, Text, Text> {
     private long rowNum = 1;
 
     @Override
-    protected void reduce(Text key, Iterable<LineItem> values, Context context) throws IOException, InterruptedException {
-        Map<String, Map<String, Object>> lnMap = new HashMap<String, Map<String, Object>>();
+    protected void reduce(LongWritable key, Iterable<LineItem> values, Context context) throws IOException, InterruptedException {
+        Map<Long, Map<String, Object>> lnMap = new HashMap<Long, Map<String, Object>>();
 
         for(LineItem item : values){
-            String lineNumber = item.getLinenumber();
-
+            long lineNumber = item.getLinenumber();
             /**
              * lineNumber로 두번째 group by를 해주는것과 같다.
              */
@@ -50,7 +46,6 @@ public class SqlReducer1 extends Reducer<Text, LineItem, Text, Text> {
                  */
                 List<Double> taxList = (List)lnResultMap.get("taxList");
                 taxList.add(item.getTax());
-
             }else{
                 Map<String, Object> lnResultMap = new HashMap<String, Object>();
                 lnResultMap.put("sumQuantity", item.getQuantity());
@@ -61,15 +56,14 @@ public class SqlReducer1 extends Reducer<Text, LineItem, Text, Text> {
                 lnResultMap.put("taxList", taxList);
 
                 lnMap.put(lineNumber, lnResultMap);
-
             }
         }
 
         /**
          * 결과를 출력 한다.
          */
-        for (Map.Entry<String, Map<String, Object>> entry : lnMap.entrySet()){
-            String lnMapKey = entry.getKey();
+        for (Map.Entry<Long, Map<String, Object>> entry : lnMap.entrySet()){
+            long lnMapKey = entry.getKey();
             Map<String, Object> lnMapValue = entry.getValue();
 
             /**
@@ -84,9 +78,12 @@ public class SqlReducer1 extends Reducer<Text, LineItem, Text, Text> {
 
             double avgTax = sumTax / taxList.size();
 
-            System.out.println("row:" + rowNum + "\t" + key + "\t\t\t" + lnMapKey + "\t\t\t" + lnMapValue.get("sumQuantity") + "\t" + lnMapValue.get("maxDiscount") + "\t" + avgTax);
+            System.out.println("row:" + rowNum + "\t" + key + "\t\t\t" + lnMapKey + "\t\t\t" +
+                    lnMapValue.get("sumQuantity") + "\t" + lnMapValue.get("maxDiscount") + "\t" + avgTax);
 
-            context.write(new Text("row:" + rowNum + "\t"), new Text(key + "\t\t\t" + lnMapKey + "\t\t\t" + lnMapValue.get("sumQuantity") + "\t" + lnMapValue.get("maxDiscount") + "\t" + avgTax));
+            context.write(new Text("row:" + rowNum + "\t"),
+                    new Text(key.get() + "\t\t\t" + lnMapKey + "\t\t\t" + lnMapValue.get("sumQuantity") + "\t" +
+                            lnMapValue.get("maxDiscount") + "\t" + avgTax));
             rowNum++;
         }
     }
